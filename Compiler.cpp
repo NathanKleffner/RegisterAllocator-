@@ -47,8 +47,8 @@ vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>
             SRtoVRTable[x.OP3.sr].SRtoVR = -1;
             SRtoVRTable[x.OP3.sr].lastUse = program.size() + 1;
         }
-        update(x.OP3,i);
-        update(x.OP3,i);
+        update(x.OP1,i);
+        update(x.OP2,i);
     }
 
     return program;
