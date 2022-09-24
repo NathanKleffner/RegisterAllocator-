@@ -5,7 +5,29 @@ using namespace Compiler;
 void Allocator::prettyPrintTable(vector<struct instruction>& v)
 {
 
-    //please make it pretty :3
+    cout << "________________________________________________________________________________________________________________________\n"
+         << "|INDEX  |OPCODE |              OP1              |              OP2      |              OP3                      | NEXT |\n"
+         << "|       |       |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   | OP   |\n"
+         << "|_______________________________________________________________________________________________________________|______|\n";
+    for (int i =0; i < v.size(); i++){
+        instruction inst = v[i];
+        cout << "|" << i << "\t|" 
+             << ToString(inst.op) << "\t|"
+             << inst.OP1.sr << "\t|"
+             << inst.OP1.vr << "\t|"
+             << inst.OP1.pr << "\t|"
+             << inst.OP1.nu << "\t|"
+             << inst.OP2.sr << "\t|"
+             << inst.OP2.vr << "\t|"
+             << inst.OP2.pr << "\t|"
+             << inst.OP2.nu << "\t|"
+             << inst.OP3.sr << "\t|"
+             << inst.OP3.vr << "\t|"
+             << inst.OP3.pr << "\t|"
+             << inst.OP3.nu << "\t|" << '\n';
+    }
+
+    
 }
 void Allocator::initializeSRtoVr(int size)
 {
