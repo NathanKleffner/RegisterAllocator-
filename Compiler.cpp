@@ -6,9 +6,9 @@ void Allocator::prettyPrintTable(vector<struct instruction>& v)
 {
 
     cout << "________________________________________________________________________________________________________________________\n"
-         << "|INDEX  |OPCODE |              OP1              |              OP2      |              OP3                      | NEXT |\n"
-         << "|       |       |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   | OP   |\n"
-         << "|_______________________________________________________________________________________________________________|______|\n";
+         << "|INDEX  |OPCODE |              OP1              |              OP2      |              OP3                      |  NEXT |\n"
+         << "|       |       |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  OP   |\n"
+         << "|_______________________________________________________________________________________________________________|_______|\n";
     for (int i =0; i < v.size(); i++){
         instruction inst = v[i];
         cout << "|" << i << "\t|" 
@@ -24,7 +24,8 @@ void Allocator::prettyPrintTable(vector<struct instruction>& v)
              << inst.OP3.sr << "\t|"
              << inst.OP3.vr << "\t|"
              << inst.OP3.pr << "\t|"
-             << inst.OP3.nu << "\t|" << '\n';
+             << inst.OP3.nu << "\t|"
+             << i+1 << "\t|" << '\n';
     }
 
     
@@ -153,6 +154,15 @@ bool Parser::makeIRVec(vector<struct token>& ts)
         }
         instruction inst;
         inst.op = t.value;
+        inst.OP1.vr = -1;
+        inst.OP2.vr = -1;
+        inst.OP3.vr = -1;
+        inst.OP1.pr = -1;
+        inst.OP2.pr = -1;
+        inst.OP3.pr = -1;
+        inst.OP1.nu = -1;
+        inst.OP2.nu = -1;
+        inst.OP3.nu = -1;
         switch(t.value)
         {
             case 0: {//load
