@@ -63,7 +63,8 @@ namespace Compiler
             int vrName;
             void initializeSRtoVr(int size);
             vector<struct instruction>& computeLastUse(vector<struct instruction>& program);
-            void update(struct op OP, int index);
+            vector<struct instruction>& allocate(vector<struct instruction>& program);
+            void update(struct op &OP, int index);
             void prettyPrintTable(vector<struct instruction>& v);
     };
 

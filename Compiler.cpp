@@ -2,11 +2,12 @@
 using namespace Compiler;
 
 
+
 void Allocator::prettyPrintTable(vector<struct instruction>& v)
 {
 
     cout << "________________________________________________________________________________________________________________________\n"
-         << "|INDEX  |OPCODE |              OP1              |              OP2      |              OP3                      |  NEXT |\n"
+         << "|INDEX  |OPCODE |              OP1              |              OP2              |              OP3              |  NEXT |\n"
          << "|       |       |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  OP   |\n"
          << "|_______________________________________________________________________________________________________________|_______|\n";
     for (int i =0; i < v.size(); i++){
@@ -26,10 +27,9 @@ void Allocator::prettyPrintTable(vector<struct instruction>& v)
              << inst.OP3.pr << "\t|"
              << inst.OP3.nu << "\t|"
              << i+1 << "\t|" << '\n';
-    }
-
-    
+    }    
 }
+
 void Allocator::initializeSRtoVr(int size)
 {
     for(int i = 0; i <= size;i++)
@@ -37,14 +37,14 @@ void Allocator::initializeSRtoVr(int size)
         struct SRtoVR temp;
         temp.sr = i;
         temp.SRtoVR = -1;
-        temp.lastUse = size + 1;
+        temp.lastUse = size;
         SRtoVRTable.push_back(temp);
     }
 }
 
 
 //OPSR corresponds to the OP source register (source1, source2, destination)
-void Allocator::update(struct op OP, int index)
+void Allocator::update(struct op &OP, int index)
 {
     if(SRtoVRTable[OP.sr].SRtoVR == -1)
     {
@@ -61,21 +61,43 @@ vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>
 {
     initializeSRtoVr(program.size());
     vrName = 0;
-    for(int i = program.size(); i > 0; i--)
+    for(int i = program.size()-1; i >= 0; i--)
     {
-        struct instruction x = program[i];
-        if(x.OP3.sr != NULL)
+        struct instruction &x = program[i];
+        if(x.OP3.sr != -1)
         {
             update(x.OP3,i);
             SRtoVRTable[x.OP3.sr].SRtoVR = -1;
-            SRtoVRTable[x.OP3.sr].lastUse = program.size() + 1;
+            SRtoVRTable[x.OP3.sr].lastUse = program.size();
         }
-        update(x.OP1,i);
-        update(x.OP2,i);
+        if (x.OP1.sr != -1 && x.op != output && x.op != loadI) update(x.OP1,i);
+        if (x.OP2.sr != -1) update(x.OP2,i);
     }
 
     return program;
 }
+
+vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program)
+{
+    int infinity = program.size();
+    for(int i = 0; i < program.size(); i++)
+    {
+        struct instruction x = program[i];
+        // rx = ensure(x.OP1.vr)
+        // ry = ensure(x.OP2.vr)
+        if (x.OP1.nu == infinity){
+            //free(OP1)
+        }
+        
+    }
+
+    return program;
+}
+
+// void Allocator::ensure()
+// {
+//     if ()
+// }
 
 void Parser::prettyPrintTable()
 {
