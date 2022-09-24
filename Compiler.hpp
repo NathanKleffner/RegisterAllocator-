@@ -53,15 +53,24 @@ namespace Compiler
         int sr;
         int SRtoVR; 
         int lastUse;
+    };
+
+    struct VRtoPR {
+        int vr;
+        int VRtoPR; 
         int mem;
+        int nextUse;
     };
 
     class Allocator
     {
         public: 
             vector<struct SRtoVR> SRtoVRTable; 
+            vector<struct VRtoPR> VRtoPRTable;
+            vector<int> prStack;
             int vrName;
-            void initializeSRtoVr(int size);
+            void initializeSRtoVR(int size);
+            void initializeVRtoPR(int size);
             vector<struct instruction>& computeLastUse(vector<struct instruction>& program);
             vector<struct instruction>& allocate(vector<struct instruction>& program);
             void update(struct op &OP, int index);

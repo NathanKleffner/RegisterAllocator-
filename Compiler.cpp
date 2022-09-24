@@ -30,7 +30,7 @@ void Allocator::prettyPrintTable(vector<struct instruction>& v)
     }    
 }
 
-void Allocator::initializeSRtoVr(int size)
+void Allocator::initializeSRtoVR(int size)
 {
     for(int i = 0; i <= size;i++)
     {
@@ -42,6 +42,18 @@ void Allocator::initializeSRtoVr(int size)
     }
 }
 
+void Allocator::initializeVRtoPR(int size)
+{
+    for(int i = 0; i <= size; i++)
+    {
+        struct VRtoPR temp;
+        temp.vr = i;
+        temp.VRtoPR = -1;
+        temp.mem = -1;
+        temp.nextUse = -1;
+        VRtoPRTable.push_back(temp);
+    }
+}
 
 //OPSR corresponds to the OP source register (source1, source2, destination)
 void Allocator::update(struct op &OP, int index)
@@ -59,7 +71,7 @@ void Allocator::update(struct op &OP, int index)
 
 vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>& program)
 {
-    initializeSRtoVr(program.size());
+    initializeSRtoVR(program.size());
     vrName = 0;
     for(int i = program.size()-1; i >= 0; i--)
     {
@@ -79,25 +91,52 @@ vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>
 
 vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program)
 {
+    initializeVRtoPR(3);
+    cout << "vr to pr 0 " << VRtoPRTable[0].VRtoPR << '\n';
     int infinity = program.size();
+    for (int i = 10; i >= 0; i--)
+        prStack.push_back(i);
     for(int i = 0; i < program.size(); i++)
     {
-        struct instruction x = program[i];
-        // rx = ensure(x.OP1.vr)
-        // ry = ensure(x.OP2.vr)
-        if (x.OP1.nu == infinity){
-            //free(OP1)
+        cout << "i" << i << '\n';
+        struct instruction &x = program[i];
+        cout << "vr to pr 0 " << VRtoPRTable[0].VRtoPR << '\n';
+        cout << "pr" << VRtoPRTable[x.OP1.vr].VRtoPR << '\n';
+        if(VRtoPRTable[x.OP1.vr].VRtoPR == -1 && x.op != loadI && x.op != output){
+            int freePR = prStack.back();
+            prStack.pop_back();
+            VRtoPRTable[x.OP1.vr].VRtoPR = freePR;
+            // load?
         }
+        if (x.op != loadI && x.op != output)
+            x.OP1.pr = VRtoPRTable[x.OP1.vr].VRtoPR;
+        if(VRtoPRTable[x.OP2.vr].VRtoPR == -1){
+            cout << "gamer\n";
+            int freePR = prStack.back();
+            prStack.pop_back();
+            VRtoPRTable[x.OP2.vr].VRtoPR = freePR;
+            // load?
+        }
+        x.OP2.pr = VRtoPRTable[x.OP2.vr].VRtoPR;
+
+        if (x.OP1.nu == infinity){
+            prStack.push_back(x.OP1.pr);
+            VRtoPRTable[x.OP1.vr].VRtoPR = -1;
+        }
+        if (x.OP2.nu == infinity){
+            prStack.push_back(x.OP2.pr);
+            VRtoPRTable[x.OP2.vr].VRtoPR = -1;
+        }
+
+        int freePR = prStack.back();
+        prStack.pop_back();
+        VRtoPRTable[x.OP3.vr].VRtoPR = freePR;
+        x.OP3.pr = freePR;
         
     }
 
     return program;
 }
-
-// void Allocator::ensure()
-// {
-//     if ()
-// }
 
 void Parser::prettyPrintTable()
 {
