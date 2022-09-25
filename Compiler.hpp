@@ -69,6 +69,7 @@ namespace Compiler
             vector<struct VRtoPR> VRtoPRTable;
             vector<int> prStack;
             int vrName;
+            void assignPR(vector<struct instruction>& program, op& OP, int index);
             void initializeSRtoVR(int size);
             void initializeVRtoPR(int size);
             vector<struct instruction>& computeLastUse(vector<struct instruction>& program);
