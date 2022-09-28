@@ -121,7 +121,7 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                 // loadI ? => r0
                 instruction loadIInst = {
                     loadI, 
-                    {1024,-1,-1,-1},
+                    {memLoc,-1,-1,-1},
                     {-1,-1,-1,-1},
                     {-1,-1,0,-1},
                 };
@@ -133,12 +133,13 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                     {-1,-1,0,-1},
                 };
                 
-                program.emplace(program.begin() + index++, loadIInst);
-                program.emplace(program.begin() + index++, storeInst);
+                program.insert(program.begin() + index++, loadIInst);
+                program.insert(program.begin() + index++, storeInst);
                 OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
 
                 prStack.push_back(spillPR);
-                VRtoPRTable[spillVR].mem = 1024;
+                VRtoPRTable[spillVR].mem = memLoc;
+                memLoc += 4;
                 VRtoPRTable[spillVR].VRtoPR = -1;
 
             }
@@ -166,8 +167,8 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                     {-1,-1,freePR,-1},
                 };
 
-                program.emplace(program.begin() + index++, loadIInst);
-                program.emplace(program.begin() + index++, loadInst);
+                program.insert(program.begin() + index++, loadIInst);
+                program.insert(program.begin() + index++, loadInst);
                 OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
 
             }
@@ -180,6 +181,7 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
 
 vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program)
 {
+    memLoc = 1024;
     initializeVRtoPR(3);
     for (int i = 2; i >= 1; i--)
         prStack.push_back(i);
