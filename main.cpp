@@ -66,6 +66,7 @@ int main(int argc, char** argv)
     }
     //p.prettyPrintTable();
     vector <struct instruction> program = a.computeLastUse(p.v);
+    //a.prettyPrintTable(program);
     a.allocate(program);
     a.prettyPrintTable(program);
     return 0;

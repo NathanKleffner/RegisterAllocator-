@@ -94,7 +94,7 @@ vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>
 
 void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& index){
     
-    op& OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
+    op OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
     if (OP.vr == -1)
         return;
     VRtoPRTable[OP.vr].nextUse = OP.nu;// not sure when to do this
@@ -135,9 +135,7 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                 
                 program.emplace(program.begin() + index++, loadIInst);
                 program.emplace(program.begin() + index++, storeInst);
-                if (opnum == 1) OP = program[index].OP1;
-                if (opnum == 2) OP = program[index].OP2;
-                if (opnum == 3) OP = program[index].OP3;
+                OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
 
                 prStack.push_back(spillPR);
                 VRtoPRTable[spillVR].mem = 1024;
@@ -170,14 +168,14 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
 
                 program.emplace(program.begin() + index++, loadIInst);
                 program.emplace(program.begin() + index++, loadInst);
-                if (opnum == 1) OP = program[index].OP1;
-                if (opnum == 2) OP = program[index].OP2;
-                if (opnum == 3) OP = program[index].OP3;
+                OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
+
             }
     }
 
     cout << " set vr " << OP.vr << " pr " << VRtoPRTable[OP.vr].VRtoPR << '\n';
-    OP.pr = VRtoPRTable[OP.vr].VRtoPR;
+    op& OPref = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
+    OPref.pr = VRtoPRTable[OP.vr].VRtoPR;
 }
 
 vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program)
