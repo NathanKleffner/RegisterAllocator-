@@ -22,52 +22,33 @@ int main(int argc, char** argv)
     Parser p;
     Allocator a;
     int ch;
-    while ((ch = getopt(argc, argv, "tph ")) != -1)
+    while ((ch = getopt(argc, argv, ":hk: ")) != -1)
     {
         switch (ch)
         {
-            case 't':{
-                 myfile.open(argv[2]);
-                bool valid = s.scan(myfile);
-                if(!valid) return 0;
-                s.prettyPrintVector();
-                return 0;   
-            }
-            case 'p':{
-                myfile.open(argv[2]);
-                bool valid = s.scan(myfile);
-                if(!valid) return 0;
-                vector<struct token> v = s.v;
-                valid = p.makeIRVec(v);
-                if(!valid){
-                    cout<<"PARSE ERROR"<<endl;
-                    return 0;
-                }
-                p.notPrettyPrint();
-                return 0;
-            }
+           
             case 'h':{
                 printHelp();
                 return 0;
                 break;
             }
+            case 'k':{
+                myfile.open(argv[3]);
+                bool valid = s.scan(myfile);
+                if(!valid) return 0;
+                vector<struct token> v = s.v;
+                valid = p.makeIRVec(v);
+                if(!valid) {
+                    cout <<"PARSE ERROR"<<endl;
+                    return 0;
+                }
+                vector <struct instruction> program = a.computeLastUse(p.v);
+                a.allocate(program, s.constToInt(optarg) );
+                a.prettyPrintTable(program);
+                return 0;
+            }
             default:
                 break;
         }
     }
-    myfile.open(argv[1]);
-    bool valid = s.scan(myfile);
-    if(!valid) return 0;
-    vector<struct token> v = s.v;
-    valid = p.makeIRVec(v);
-    if(!valid) {
-        cout <<"PARSE ERROR"<<endl;
-        return 0;
-    }
-    //p.prettyPrintTable();
-    vector <struct instruction> program = a.computeLastUse(p.v);
-    //a.prettyPrintTable(program);
-    a.allocate(program);
-    a.prettyPrintTable(program);
-    return 0;
 };

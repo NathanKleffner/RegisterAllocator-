@@ -74,7 +74,7 @@ namespace Compiler
             void initializeSRtoVR(int size);
             void initializeVRtoPR(int size);
             vector<struct instruction>& computeLastUse(vector<struct instruction>& program);
-            vector<struct instruction>& allocate(vector<struct instruction>& program);
+            vector<struct instruction>& allocate(vector<struct instruction>& program, int numP);
             void update(struct op &OP, int index);
             void prettyPrintTable(vector<struct instruction>& v);
     };

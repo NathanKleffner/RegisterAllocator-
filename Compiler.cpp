@@ -179,11 +179,12 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
     OPref.pr = VRtoPRTable[OP.vr].VRtoPR;
 }
 
-vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program)
+vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program, int numP)
 {
     memLoc = 32768;
     initializeVRtoPR(vrName);
-    for (int i = 2; i >= 1; i--)
+    cout << "numP = " << numP <<endl;
+    for (int i = numP; i >= 1; i--)
         prStack.push_back(i);
 
     int infinity = program.size();
@@ -390,7 +391,7 @@ void Scanner::prettyPrintVector()
 int Scanner::constToInt(string s)
 {
     int n= 0;
-    for(int i =1;i < s.length();i++)
+    for(int i =0;i < s.length();i++)
     {
         char c = s[i];
         n = n*10 + (c - '0');
