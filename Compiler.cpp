@@ -183,7 +183,6 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
 {
     memLoc = 32768;
     initializeVRtoPR(vrName);
-    cout << "numP = " << numP <<endl;
     for (int i = numP; i >= 1; i--)
         prStack.push_back(i);
 

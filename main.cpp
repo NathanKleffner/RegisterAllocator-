@@ -3,7 +3,7 @@ using namespace Compiler;
 
 
 void printHelp(){
-    cout<<"Welcome project 1. This program includes a handwritten scanner and parser for ILOC."<<endl;
+    cout<<"This program includes a handwritten scanner and parser for ILOC."<<endl;
     cout<<endl;
     cout<<"-t [filename] \t";
     cout<<"Prints a list of tokens from the input file."<<endl;
@@ -51,4 +51,17 @@ int main(int argc, char** argv)
                 break;
         }
     }
+    myfile.open(argv[1]);
+    bool valid = s.scan(myfile);
+    if(!valid) return 0;
+    vector<struct token> v = s.v;
+    valid = p.makeIRVec(v);
+    if(!valid) {
+        cout <<"PARSE ERROR"<<endl;
+        return 0;
+    }
+    vector <struct instruction> program = a.computeLastUse(p.v);
+    a.allocate(program, 4 );
+    a.prettyPrintTable(program);
+    return 0;
 };
