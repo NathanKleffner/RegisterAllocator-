@@ -182,7 +182,7 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
 vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program)
 {
     memLoc = 32768;
-    initializeVRtoPR(3);
+    initializeVRtoPR(vrName);
     for (int i = 2; i >= 1; i--)
         prStack.push_back(i);
 
