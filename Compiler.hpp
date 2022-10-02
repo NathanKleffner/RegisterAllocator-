@@ -74,6 +74,7 @@ namespace Compiler
             void assignPR(vector<struct instruction>& program, int opnum, int& index);
             void initializeSRtoVR(int size);
             void initializeVRtoPR(int size);
+            void printIlloc(vector<struct instruction>& program); 
             vector<struct instruction>& computeLastUse(vector<struct instruction>& program);
             vector<struct instruction>& allocate(vector<struct instruction>& program, int numP);
             void update(struct op &OP, int index);

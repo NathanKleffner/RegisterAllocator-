@@ -44,7 +44,8 @@ int main(int argc, char** argv)
                 }
                 vector <struct instruction> program = a.computeLastUse(p.v);
                 a.allocate(program, s.constToInt(optarg) );
-                a.prettyPrintTable(program);
+                //a.prettyPrintTable(program);
+                a.printIlloc(program);
                 return 0;
             }
             default:
@@ -62,6 +63,7 @@ int main(int argc, char** argv)
     }
     vector <struct instruction> program = a.computeLastUse(p.v);
     a.allocate(program, 4 );
-    a.prettyPrintTable(program);
+    //a.prettyPrintTable(program);
+    a.printIlloc(program);
     return 0;
 };
