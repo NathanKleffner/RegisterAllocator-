@@ -1,7 +1,7 @@
 CFLAGS=-Wall -O2 -std=c++11
 
 BUILDDIR = build
-OUT = reader
+OUT = alloc
 CC = g++
 INC = -Iinclude
 LIBS = -lstdc++

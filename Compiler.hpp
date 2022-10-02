@@ -60,6 +60,7 @@ namespace Compiler
         int VRtoPR; 
         int mem;
         int nextUse;
+        int remat;
     };
 
     class Allocator
@@ -76,6 +77,7 @@ namespace Compiler
             vector<struct instruction>& computeLastUse(vector<struct instruction>& program);
             vector<struct instruction>& allocate(vector<struct instruction>& program, int numP);
             void update(struct op &OP, int index);
+            void printVRtoPR();
             void prettyPrintTable(vector<struct instruction>& v);
     };
 
