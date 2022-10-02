@@ -201,8 +201,8 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
             // Assign the PR
             int freePR = prStack.back();
             //cout << "stack empty " << prStack.empty() << '\n'; 
-            for (int i : prStack)
-                //cout << i << "\n";
+            //for (int i : prStack)
+            //    cout << i << "\n";
             prStack.pop_back();
             VRtoPRTable[OP.vr].VRtoPR = freePR;
             //cout << "\tassign vr " << OP.vr << " pr " << freePR << '\n';
@@ -255,6 +255,7 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
     int i = 0;
     while (i < program.size())
     {
+        //cout << "instruction " << i << ": " << ToString(program[i].op) << '\n';
         //cout << "OP1\n";
         
         if (program[i].op != loadI && program[i].op != output)
