@@ -193,15 +193,19 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                 }
                 
                 prStack.push_back(spillPR);
+                //cout << "pushing" << spillPR << '\n';
                 VRtoPRTable[spillVR].VRtoPR = -1;
 
             }
 
             // Assign the PR
             int freePR = prStack.back();
+            //cout << "stack empty " << prStack.empty() << '\n'; 
+            for (int i : prStack)
+                //cout << i << "\n";
             prStack.pop_back();
             VRtoPRTable[OP.vr].VRtoPR = freePR;
-            ////cout << "\tassign vr " << OP.vr << " pr " << freePR << '\n';
+            //cout << "\tassign vr " << OP.vr << " pr " << freePR << '\n';
             // Load op.VR into freePR????
 
             // If this VR has been spilled, unspill it
@@ -251,32 +255,32 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
     int i = 0;
     while (i < program.size())
     {
-        //cout << "instruction " << i << ": " << ToString(program[i].op) << '\n';
-        struct instruction &x = program[i];
         //cout << "OP1\n";
         
-        if (x.op != loadI && x.op != output)
+        if (program[i].op != loadI && program[i].op != output)
             assignPR(program, 1, i);
+
         //cout << "OP2\n";
         assignPR(program, 2, i);
 
+
         // If never used again, free it
-        if (x.OP1.nu == infinity){
-            //cout << "\tfree op1 pr " << x.OP1.pr << '\n';
-            prStack.push_back(x.OP1.pr);
-            VRtoPRTable[x.OP1.vr].VRtoPR = -1;
+        if (program[i].OP1.nu == infinity){
+            //cout << "\tfree op1 pr " << program[i].OP1.pr << '\n';
+            prStack.push_back(program[i].OP1.pr);
+            VRtoPRTable[program[i].OP1.vr].VRtoPR = -1;
         }
-        if (x.OP2.nu == infinity){
-            //cout << "\tfree op2 pr " << x.OP1.pr << '\n';
-            prStack.push_back(x.OP2.pr);
-            VRtoPRTable[x.OP2.vr].VRtoPR = -1;
+        if (program[i].OP2.nu == infinity){
+            //cout << "\tfree op2 pr " << program[i].OP1.pr << '\n';
+            prStack.push_back(program[i].OP2.pr);
+            VRtoPRTable[program[i].OP2.vr].VRtoPR = -1;
         }
         
         //cout << "OP3\n";
         assignPR(program, 3, i);
 
-        if (x.op == loadI)
-            VRtoPRTable[x.OP3.vr].remat = x.OP1.sr;
+        if (program[i].op == loadI)
+            VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
 
         //printVRtoPR();
         i++;
