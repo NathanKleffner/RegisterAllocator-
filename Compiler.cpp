@@ -125,15 +125,15 @@ vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>
     vrName = 0;
     for(int i = program.size()-1; i >= 0; i--)
     {
-        struct instruction &x = program[i];
-        if(x.OP3.sr != -1)
+        //struct instruction &x = program[i];
+        if(program[i].OP3.sr != -1)
         {
-            update(x.OP3,i);
-            SRtoVRTable[x.OP3.sr].SRtoVR = -1;
-            SRtoVRTable[x.OP3.sr].lastUse = program.size();
+            update(program[i].OP3,i);
+            SRtoVRTable[program[i].OP3.sr].SRtoVR = -1;
+            SRtoVRTable[program[i].OP3.sr].lastUse = program.size();
         }
-        if (x.OP1.sr != -1 && x.op != output && x.op != loadI) update(x.OP1,i);
-        if (x.OP2.sr != -1) update(x.OP2,i);
+        if (program[i].OP1.sr != -1 && program[i].op != output && program[i].op != loadI) update(program[i].OP1,i);
+        if (program[i].OP2.sr != -1) update(program[i].OP2,i);
     }
 
     return program;
@@ -145,7 +145,6 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
     op OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
     if (OP.vr == -1)
         return;
-    VRtoPRTable[OP.vr].nextUse = OP.nu;// not sure when to do this
        
 
     // If this VR doesn't have a PR
@@ -270,18 +269,22 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
             //cout << "\tfree op1 pr " << program[i].OP1.pr << '\n';
             prStack.push_back(program[i].OP1.pr);
             VRtoPRTable[program[i].OP1.vr].VRtoPR = -1;
+        }else{
+            VRtoPRTable[program[i].OP1.vr].nextUse = program[i].OP1.nu;
         }
         if (program[i].OP2.nu == infinity){
             //cout << "\tfree op2 pr " << program[i].OP1.pr << '\n';
             prStack.push_back(program[i].OP2.pr);
             VRtoPRTable[program[i].OP2.vr].VRtoPR = -1;
+        }else{
+            VRtoPRTable[program[i].OP2.vr].nextUse = program[i].OP2.nu;
         }
         
         //cout << "OP3\n";
         assignPR(program, 3, i);
 
-        if (program[i].op == loadI)
-            VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
+        // if (program[i].op == loadI)
+        //     VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
 
         //printVRtoPR();
         i++;
