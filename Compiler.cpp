@@ -145,7 +145,8 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
     op OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
     if (OP.vr == -1)
         return;
-       
+    
+    //VRtoPRTable[OP.vr].nextUse = OP.nu;
 
     // If this VR doesn't have a PR
     if(VRtoPRTable[OP.vr].VRtoPR == -1){
@@ -269,19 +270,22 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
             //cout << "\tfree op1 pr " << program[i].OP1.pr << '\n';
             prStack.push_back(program[i].OP1.pr);
             VRtoPRTable[program[i].OP1.vr].VRtoPR = -1;
-        }else{
+        }
+        else{
             VRtoPRTable[program[i].OP1.vr].nextUse = program[i].OP1.nu;
         }
         if (program[i].OP2.nu == infinity){
             //cout << "\tfree op2 pr " << program[i].OP1.pr << '\n';
             prStack.push_back(program[i].OP2.pr);
             VRtoPRTable[program[i].OP2.vr].VRtoPR = -1;
-        }else{
+        }
+        else{
             VRtoPRTable[program[i].OP2.vr].nextUse = program[i].OP2.nu;
         }
         
         //cout << "OP3\n";
         assignPR(program, 3, i);
+        VRtoPRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
 
         // if (program[i].op == loadI)
         //     VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
