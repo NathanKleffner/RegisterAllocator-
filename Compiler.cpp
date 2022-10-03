@@ -166,9 +166,8 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                     }
                 }
                 //cout << "\tspill vr " << spillVR << " pr " << spillPR << '\n'; 
-
-
-                if (VRtoPRTable[spillVR].remat == -1){
+                //if it's not rematarializable or spilled, then spill it 
+                if (VRtoPRTable[spillVR].remat == -1 && VRtoPRTable[OP.vr].mem == -1 ){
                     // loadI ? => r0
                     instruction loadIInst = {
                         loadI, 
