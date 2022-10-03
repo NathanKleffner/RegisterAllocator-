@@ -287,8 +287,8 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
         assignPR(program, 3, i);
         VRtoPRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
 
-        // if (program[i].op == loadI)
-        //     VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
+        if (program[i].op == loadI)
+            VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
 
         //printVRtoPR();
         i++;
