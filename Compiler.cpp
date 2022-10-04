@@ -1,7 +1,7 @@
 #include "Compiler.hpp"
 using namespace Compiler;
 
-//#define DEBUG
+#define DEBUG
 #ifdef DEBUG
 #define debug(x) std::cout << x
 #else
@@ -283,7 +283,7 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
             VRtoPRTable[program[i].OP1.vr].VRtoPR = -1;
         }
         else{
-            debug("\tset op1 vr " << program[i].OP1.vr << " next use " << program[i].OP1.nu);
+            debug("\tset op1 vr " << program[i].OP1.vr << " next use " << program[i].OP1.nu << '\n');
             VRtoPRTable[program[i].OP1.vr].nextUse = program[i].OP1.nu;
         }
         if (program[i].OP2.nu == infinity){
@@ -292,13 +292,13 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
             VRtoPRTable[program[i].OP2.vr].VRtoPR = -1;
         }
         else{
-            debug("\tset op2 vr " << program[i].OP2.vr << " next use " << program[i].OP2.nu);
+            debug("\tset op2 vr " << program[i].OP2.vr << " next use " << program[i].OP2.nu << '\n');
             VRtoPRTable[program[i].OP2.vr].nextUse = program[i].OP2.nu;
         }
         
         debug("OP3\n");
         assignPR(program, 3, i);
-        debug("\tset op3 vr " << program[i].OP3.vr << " next use " << program[i].OP3.nu);
+        debug("\tset op3 vr " << program[i].OP3.vr << " next use " << program[i].OP3.nu << '\n');
         VRtoPRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
 
         if (program[i].op == loadI)
