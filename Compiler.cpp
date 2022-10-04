@@ -301,8 +301,8 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
         debug("\tset op3 vr " << program[i].OP3.vr << " next use " << program[i].OP3.nu);
         VRtoPRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
 
-        // if (program[i].op == loadI)
-        //     VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
+        if (program[i].op == loadI)
+            VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
 
         //printVRtoPR();
         i++;
