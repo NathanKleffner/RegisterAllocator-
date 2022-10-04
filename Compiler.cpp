@@ -1,8 +1,8 @@
 #include "Compiler.hpp"
 using namespace Compiler;
 
-#define USEDEBUG
-#ifdef USEDEBUG
+#define DEBUG
+#ifdef DEBUG
 #define debug(x) std::cout << x
 #else
 #define debug(x) 
@@ -166,7 +166,6 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                 int max = -1;
                 // spill the pr that has the max next use 
                 for (int i = 0; i < VRtoPRTable.size(); i++){
-                    debug("\t\tvr " << i << " pr " << VRtoPRTable[i].VRtoPR << " nu " << VRtoPRTable[i].nextUse << '\n');
                     if (VRtoPRTable[i].VRtoPR != -1 && VRtoPRTable[i].nextUse > max){
                         spillVR = i;
                         spillPR = VRtoPRTable[i].VRtoPR;
@@ -177,14 +176,15 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
 
 
                 if (VRtoPRTable[spillVR].remat == -1){
-                    // loadI ? => r0
+                    debug("not remat" << '\n');
+                    // loadI _ => r0
                     instruction loadIInst = {
                         loadI, 
                         {memLoc,-1,-1,-1},
                         {-1,-1,-1,-1},
                         {-1,-1,0,-1},
                     };
-                    // store r? => r0
+                    // store r_ => r0
                     instruction storeInst = {
                         store, 
                         {-1,-1,spillPR,-1},
@@ -208,7 +208,7 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
 
             // Assign the PR
             int freePR = prStack.back();
-            debug( "stack empty " << prStack.empty() << '\n'); 
+            debug( "stack size " << prStack.size() << '\n'); 
             //for (int i : prStack)
             //    cout << i << "\n";
             prStack.pop_back();
@@ -249,6 +249,9 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
     debug("set vr " << OP.vr << " pr " << VRtoPRTable[OP.vr].VRtoPR << '\n');
     op& OPref = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
     OPref.pr = VRtoPRTable[OP.vr].VRtoPR;
+    #ifdef DEBUG
+        printVRtoPR();
+    #endif
 }
 
 vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program, int numP)
@@ -280,6 +283,7 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
             VRtoPRTable[program[i].OP1.vr].VRtoPR = -1;
         }
         else{
+            debug("\tset op1 vr " << program[i].OP1.vr << " next use " << program[i].OP1.nu);
             VRtoPRTable[program[i].OP1.vr].nextUse = program[i].OP1.nu;
         }
         if (program[i].OP2.nu == infinity){
@@ -288,11 +292,13 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
             VRtoPRTable[program[i].OP2.vr].VRtoPR = -1;
         }
         else{
+            debug("\tset op2 vr " << program[i].OP2.vr << " next use " << program[i].OP2.nu);
             VRtoPRTable[program[i].OP2.vr].nextUse = program[i].OP2.nu;
         }
         
         debug("OP3\n");
         assignPR(program, 3, i);
+        debug("\tset op3 vr " << program[i].OP3.vr << " next use " << program[i].OP3.nu);
         VRtoPRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
 
         // if (program[i].op == loadI)
