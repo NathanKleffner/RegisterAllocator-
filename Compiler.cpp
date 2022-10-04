@@ -1,7 +1,7 @@
 #include "Compiler.hpp"
 using namespace Compiler;
 
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG
 #define debug(x) std::cout << x
 #else
@@ -175,7 +175,7 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                 debug("\tspill vr " << spillVR << " pr " << spillPR << '\n'); 
 
 
-                if (VRtoPRTable[spillVR].remat == -1){
+                 if (VRtoPRTable[spillVR].remat == -1 && VRtoPRTable[OP.vr].mem == -1 ){
                     debug("not remat" << '\n');
                     // loadI _ => r0
                     instruction loadIInst = {
