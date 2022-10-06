@@ -1,4 +1,4 @@
-CFLAGS=-Wall -O2 -std=c++11
+CFLAGS= -O0 -g -std=c++11
 
 BUILDDIR = build
 OUT = alloc
@@ -9,7 +9,7 @@ DIRS=$(BUILDDIR)
 
 OBJS = main.o Compiler.o
 
-$%.o: %.cpp
+%.o: %.cpp
 	$(CC) -c $(INC) -o $@ $< $(CFLAGS)
 
 $(OUT): $(OBJS)

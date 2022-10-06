@@ -1,4 +1,4 @@
-e/SIM INPUT:
+//SIM INPUT:
 //OUTPUT: 2 110
 //
 // CSCI 3334, Proj 1 - block10.i

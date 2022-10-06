@@ -46,6 +46,7 @@ namespace Compiler
         struct op OP1;
         struct op OP2;
         struct op OP3;
+        int nextStore;
     };
 
 
@@ -55,21 +56,24 @@ namespace Compiler
         int lastUse;
     };
 
-    struct VRtoPR {
+    struct VRRow {
+        public:
         int vr;
-        int VRtoPR; 
+        int PR; 
         int mem;
         int nextUse;
-        int remat;
+        int value; 
     };
+         
 
     class Allocator
     {
         public: 
+            struct VRRow makeRow(int name);  
             vector<struct SRtoVR> SRtoVRTable; 
-            vector<struct VRtoPR> VRtoPRTable;
+            vector<struct VRRow> VRTable; 
             vector<int> prStack;
-            int vrName;
+            int vrName; 
             int memLoc;
             void assignPR(vector<struct instruction>& program, int opnum, int& index);
             void initializeSRtoVR(int size);

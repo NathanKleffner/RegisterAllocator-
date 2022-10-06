@@ -1,26 +1,28 @@
 #include "Compiler.hpp"
 using namespace Compiler;
 
-#define DEBUG
-#ifdef DEBUG
-#define debug(x) std::cout << x
-#else
-#define debug(x) 
-#endif 
-
 //Helper function for prettyPrintTable
 string printIfValid(int i){
     return i != -1 ? to_string(i) : "";
 }
 
+struct VRRow Allocator::makeRow(int name) {
+    struct VRRow temp;
+    temp.vr = name;
+    temp.PR = -1;    
+    temp.mem = -1;
+    temp.nextUse = -1;
+    temp.value = -1;
+    return temp;
+}
 
 void Allocator::prettyPrintTable(vector<struct instruction>& v)
 {
 
-    cout << "________________________________________________________________________________________________________________________\n"
-         << "|INDEX  |OPCODE |              OP1              |              OP2              |              OP3              |  NEXT |\n"
-         << "|       |       |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  OP   |\n"
-         << "|_______________________________________________________________________________________________________________|_______|\n";
+    cout << "_________________________________________________________________________________________________________________________________\n"
+         << "|INDEX  |OPCODE |              OP1              |              OP2              |              OP3              |  NEXT |  NEXT |\n"
+         << "|       |       |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   |  SR   |  VR   |  PR   |  NU   | STORE |  OP   |\n"
+         << "|_______________________________________________________________________________________________________________|_______|_______|\n";
     for (int i =0; i < v.size(); i++){
         instruction inst = v[i];
         cout << "|" << i << "\t|" 
@@ -37,6 +39,7 @@ void Allocator::prettyPrintTable(vector<struct instruction>& v)
              << printIfValid(inst.OP3.vr) << "\t|"
              << printIfValid(inst.OP3.pr) << "\t|"
              << printIfValid(inst.OP3.nu) << "\t|"
+             << printIfValid(inst.nextStore) << "\t|" 
              << i+1 << "\t|" << '\n';
     }    
 }
@@ -82,8 +85,8 @@ void Allocator::printIlloc(vector<struct instruction>& program)
 void Allocator::printVRtoPR()
 {
     cout << "|vr\t|pr\t|nu\t|mem\t|remat\t|"<< '\n';
-    for (int i = 0; i < VRtoPRTable.size(); i++){
-        cout << '|' << i << "\t|" << VRtoPRTable[i].VRtoPR << "\t|" << VRtoPRTable[i].nextUse << "\t|" << VRtoPRTable[i].mem << "\t|" << VRtoPRTable[i].remat << '\n';
+    for (int i = 0; i < VRTable.size(); i++){
+        cout << '|' << i << "\t|" << VRTable[i].PR << "\t|" << VRTable[i].nextUse << "\t|" << VRTable[i].mem << "\t|" << VRTable[i].value << '\n';
     }
 }
 
@@ -91,26 +94,18 @@ void Allocator::initializeSRtoVR(int size)
 {
     for(int i = 0; i <= size;i++)
     {
-        struct SRtoVR temp;
-        temp.sr = i;
-        temp.SRtoVR = -1;
-        temp.lastUse = size;
+        SRtoVR temp = {i,-1,size};
         SRtoVRTable.push_back(temp);
     }
 }
 
 void Allocator::initializeVRtoPR(int size)
-{
-    for(int i = 0; i <= size; i++)
-    {
-        struct VRtoPR temp;
-        temp.vr = i;
-        temp.VRtoPR = -1;
-        temp.mem = -1;
-        temp.nextUse = -1;
-        temp.remat = -1;
-        VRtoPRTable.push_back(temp);
+{ 
+    for(int i = 0; i <= size; i++){
+        struct VRRow temp = makeRow(i);
+        VRTable.push_back(temp);
     }
+
 }
 
 //OPSR corresponds to the OP source register (source1, source2, destination)
@@ -131,6 +126,7 @@ vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>
 {
     initializeSRtoVR(program.size());
     vrName = 0;
+    int storeLoc = program.size(); 
     for(int i = program.size()-1; i >= 0; i--)
     {
         //struct instruction &x = program[i];
@@ -142,6 +138,8 @@ vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>
         }
         if (program[i].OP1.sr != -1 && program[i].op != output && program[i].op != loadI) update(program[i].OP1,i);
         if (program[i].OP2.sr != -1) update(program[i].OP2,i);
+        program[i].nextStore = storeLoc; 
+        if (program[i].op == store) storeLoc = i; 
     }
 
     return program;
@@ -154,37 +152,39 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
     if (OP.vr == -1)
         return;
     
-    //VRtoPRTable[OP.vr].nextUse = OP.nu;
+    //VRTable[OP.vr].nextUse = OP.nu;
 
     // If this VR doesn't have a PR
-    if(VRtoPRTable[OP.vr].VRtoPR == -1){
-            debug("\tno pr for vr " << OP.vr << '\n');
+    if(VRTable[OP.vr].PR == -1){
+            //cout << "\tno pr for vr " << OP.vr << '\n';
             // If the stack is empty, spill
             if (prStack.empty()){
                 int spillPR = -1;
                 int spillVR = -1;
                 int max = -1;
                 // spill the pr that has the max next use 
-                for (int i = 0; i < VRtoPRTable.size(); i++){
-                    if (VRtoPRTable[i].VRtoPR != -1 && VRtoPRTable[i].nextUse > max){
+                for (int i = 0; i < VRTable.size(); i++){
+                    //cout << "\t\tvr " << i << " pr " << VRTable[i].PR << " nu " << VRTable[i].nextUse << '\n';
+                    if (VRTable[i].PR != -1 && VRTable[i].nextUse > max){
                         spillVR = i;
-                        spillPR = VRtoPRTable[i].VRtoPR;
-                        max = VRtoPRTable[i].nextUse;
+                        spillPR = VRTable[i].PR;
+                        max = VRTable[i].nextUse;
                     }
                 }
-                debug("\tspill vr " << spillVR << " pr " << spillPR << '\n'); 
-
-
-                 if (VRtoPRTable[spillVR].remat == -1 && VRtoPRTable[OP.vr].mem == -1 ){
-                    debug("not remat" << '\n');
-                    // loadI _ => r0
+                //cout << "\tspill vr " << spillVR << " pr " << spillPR << '\n'; 
+                //if it's not rematarializable or spilled, then spill it
+                bool clean = VRTable[spillVR].nextUse <= program[index].nextStore && VRTable[spillVR].mem < 32768 && VRTable[spillVR].mem > -1;  
+                bool rematable = VRTable[spillVR].value != -1; 
+                bool spilled = VRTable[spillVR].mem >= 32768;
+                if (!clean && !rematable && !spilled){
+                    // loadI ? => r0
                     instruction loadIInst = {
                         loadI, 
                         {memLoc,-1,-1,-1},
                         {-1,-1,-1,-1},
                         {-1,-1,0,-1},
                     };
-                    // store r_ => r0
+                    // store r? => r0
                     instruction storeInst = {
                         store, 
                         {-1,-1,spillPR,-1},
@@ -196,32 +196,32 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                     program.insert(program.begin() + index++, storeInst);
                     OP = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
 
-                    VRtoPRTable[spillVR].mem = memLoc;
+                    VRTable[spillVR].mem = memLoc;
                     memLoc += 4;
                 }
                 
                 prStack.push_back(spillPR);
-                debug("pushing" << spillPR << '\n');
-                VRtoPRTable[spillVR].VRtoPR = -1;
+                //cout << "pushing" << spillPR << '\n';
+                VRTable[spillVR].PR = -1;
 
             }
 
             // Assign the PR
             int freePR = prStack.back();
-            debug( "stack size " << prStack.size() << '\n'); 
+            //cout << "stack empty " << prStack.empty() << '\n'; 
             //for (int i : prStack)
             //    cout << i << "\n";
             prStack.pop_back();
-            VRtoPRTable[OP.vr].VRtoPR = freePR;
-            debug("\tassign vr " << OP.vr << " pr " << freePR << '\n');
+            VRTable[OP.vr].PR = freePR;
+            //cout << "\tassign vr " << OP.vr << " pr " << freePR << '\n';
             // Load op.VR into freePR????
 
             // If this VR has been spilled, unspill it
-            if (VRtoPRTable[OP.vr].mem != -1 && VRtoPRTable[OP.vr].remat == -1){
-                debug("\tunspill vr " << OP.vr << " from mem " << VRtoPRTable[OP.vr].mem << '\n');
+            if (VRTable[OP.vr].mem != -1 && VRTable[OP.vr].value == -1){
+                //cout << "\tunspill vr " << OP.vr << " from mem " << VRTable[OP.vr].mem << '\n';
                 instruction loadIInst = {
                     loadI, 
-                    {VRtoPRTable[OP.vr].mem,-1,-1,-1},
+                    {VRTable[OP.vr].mem,-1,-1,-1},
                     {-1,-1,-1,-1},
                     {-1,-1,0,-1},
                 };
@@ -234,24 +234,21 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
 
                 program.insert(program.begin() + index++, loadIInst);
                 program.insert(program.begin() + index++, loadInst);
-            }else if(VRtoPRTable[OP.vr].remat != -1){
-                debug("unspill remat vr " << OP.vr << " value " << VRtoPRTable[OP.vr].remat << '\n');
+            }else if(VRTable[OP.vr].value!= -1){
+                //cout << "unspill remat vr " << OP.vr << " value " << VRTable[OP.vr].remat << '\n';
                 instruction loadIInst = {
                     loadI, 
-                    {VRtoPRTable[OP.vr].remat,-1,-1,-1},
+                    {VRTable[OP.vr].value,-1,-1,-1},
                     {-1,-1,-1,-1},
-                    {-1,-1,VRtoPRTable[OP.vr].VRtoPR,-1},
+                    {-1,-1,VRTable[OP.vr].PR,-1},
                 };
                 program.insert(program.begin() + index++, loadIInst);
             }
     }
 
-    debug("set vr " << OP.vr << " pr " << VRtoPRTable[OP.vr].VRtoPR << '\n');
+    //s//cout << " set vr " << OP.vr << " pr " << VRTable[OP.vr].PR << '\n';
     op& OPref = opnum == 1 ? program[index].OP1 : (opnum == 2 ? program[index].OP2 : (program[index].OP3));
-    OPref.pr = VRtoPRTable[OP.vr].VRtoPR;
-    #ifdef DEBUG
-        printVRtoPR();
-    #endif
+    OPref.pr = VRTable[OP.vr].PR;
 }
 
 vector<struct instruction>& Allocator::allocate(vector<struct instruction>& program, int numP)
@@ -266,43 +263,48 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
     int i = 0;
     while (i < program.size())
     {
-        debug("instruction " << i << ": " << ToString(program[i].op) << '\n');
-        debug("OP1\n");
+        //cout << "instruction " << i << ": " << ToString(program[i].op) << '\n';
+        //cout << "OP1\n";
         
         if (program[i].op != loadI && program[i].op != output)
             assignPR(program, 1, i);
+          
 
-        debug("OP2\n");
+        //cout << "OP2\n";
         assignPR(program, 2, i);
 
 
         // If never used again, free it
         if (program[i].OP1.nu == infinity){
-            debug("\tfree op1 pr " << program[i].OP1.pr << '\n');
+            //cout << "\tfree op1 pr " << program[i].OP1.pr << '\n';
             prStack.push_back(program[i].OP1.pr);
-            VRtoPRTable[program[i].OP1.vr].VRtoPR = -1;
+            VRTable[program[i].OP1.vr].PR = -1;
         }
-        else{
-            debug("\tset op1 vr " << program[i].OP1.vr << " next use " << program[i].OP1.nu << '\n');
-            VRtoPRTable[program[i].OP1.vr].nextUse = program[i].OP1.nu;
+        else if(program[i].OP1.vr !=-1){
+            VRTable[program[i].OP1.vr].nextUse = program[i].OP1.nu;
         }
         if (program[i].OP2.nu == infinity){
-            debug("\tfree op2 pr " << program[i].OP1.pr << '\n');
+            //cout << "\tfree op2 pr " << program[i].OP1.pr << '\n';
             prStack.push_back(program[i].OP2.pr);
-            VRtoPRTable[program[i].OP2.vr].VRtoPR = -1;
+            VRTable[program[i].OP2.vr].PR = -1;
         }
-        else{
-            debug("\tset op2 vr " << program[i].OP2.vr << " next use " << program[i].OP2.nu << '\n');
-            VRtoPRTable[program[i].OP2.vr].nextUse = program[i].OP2.nu;
+        else if(program[i].OP2.vr != -1){
+           // cout << "SR: " << program[i].OP2.sr << " VR: " << program[i].OP2.vr << endl;
+            VRTable[program[i].OP2.vr].nextUse = program[i].OP2.nu;
         }
         
-        debug("OP3\n");
+        //cout << "OP3\n";
         assignPR(program, 3, i);
-        debug("\tset op3 vr " << program[i].OP3.vr << " next use " << program[i].OP3.nu << '\n');
-        VRtoPRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
+        if(program[i].OP3.vr != -1) VRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
 
-        if (program[i].op == loadI)
-            VRtoPRTable[program[i].OP3.vr].remat = program[i].OP1.sr;
+        if (program[i].op == loadI){
+            VRTable[program[i].OP3.vr].value = program[i].OP1.sr;
+        }
+
+        if (program[i].op == load && VRTable[program[i].OP1.vr].value != -1){
+            VRTable[program[i].OP3.vr].mem = VRTable[program[i].OP1.vr].value;
+        }
+
 
         //printVRtoPR();
         i++;
@@ -397,6 +399,7 @@ bool Parser::makeIRVec(vector<struct token>& ts)
         inst.OP1.nu = -1;
         inst.OP2.nu = -1;
         inst.OP3.nu = -1;
+        inst.nextStore = -1;
         switch(t.value)
         {
             case 0: {//load
