@@ -76,7 +76,7 @@ namespace Compiler
             int vrName; 
             int memLoc;
             void assignPR(vector<struct instruction>& program, int opnum, int& index);
-            void initializeSRtoVR(int size);
+            void initializeSRtoVR(vector<struct instruction>& program);
             void initializeVRtoPR(int size);
             void printIlloc(vector<struct instruction>& program); 
             vector<struct instruction>& computeLastUse(vector<struct instruction>& program);

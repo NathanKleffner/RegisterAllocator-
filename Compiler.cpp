@@ -90,9 +90,16 @@ void Allocator::printVRtoPR()
     }
 }
 
-void Allocator::initializeSRtoVR(int size)
-{
-    for(int i = 0; i <= size;i++)
+void Allocator::initializeSRtoVR(vector<struct instruction>& program)
+{   int max = 0; 
+    for(auto inst:program){
+        if(inst.op != loadI && inst.op != output && inst.OP1.sr > max) max = inst.OP1.sr;
+        if(inst.OP2.sr > max) max = inst.OP2.sr;
+        if(inst.OP3.sr > max) max = inst.OP3.sr;  
+    }
+
+    int size = program.size(); 
+    for(int i = 0; i <= max;i++)
     {
         SRtoVR temp = {i,-1,size};
         SRtoVRTable.push_back(temp);
@@ -111,8 +118,8 @@ void Allocator::initializeVRtoPR(int size)
 //OPSR corresponds to the OP source register (source1, source2, destination)
 void Allocator::update(struct op &OP, int index)
 {
-    if(SRtoVRTable[OP.sr].SRtoVR == -1)
-    {
+    if(SRtoVRTable[OP.sr].SRtoVR == -1 && OP.sr != -1)
+    {   
         SRtoVRTable[OP.sr].SRtoVR = vrName++;
     }
     OP.vr = SRtoVRTable[OP.sr].SRtoVR;
@@ -124,7 +131,7 @@ void Allocator::update(struct op &OP, int index)
 
 vector<struct instruction>& Allocator::computeLastUse(vector<struct instruction>& program)
 {
-    initializeSRtoVR(program.size());
+    initializeSRtoVR(program);
     vrName = 0;
     int storeLoc = program.size(); 
     for(int i = program.size()-1; i >= 0; i--)
@@ -155,7 +162,7 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
     //VRTable[OP.vr].nextUse = OP.nu;
 
     // If this VR doesn't have a PR
-    if(VRTable[OP.vr].PR == -1){
+    if(VRTable[OP.vr].PR == -1 || opnum == 3){
             //cout << "\tno pr for vr " << OP.vr << '\n';
             // If the stack is empty, spill
             if (prStack.empty()){
@@ -203,7 +210,7 @@ void Allocator::assignPR(vector<struct instruction>& program, int opnum, int& in
                 prStack.push_back(spillPR);
                 //cout << "pushing" << spillPR << '\n';
                 VRTable[spillVR].PR = -1;
-
+                VRTable[spillVR].nextUse = -1;
             }
 
             // Assign the PR
@@ -294,9 +301,11 @@ vector<struct instruction>& Allocator::allocate(vector<struct instruction>& prog
         }
         
         //cout << "OP3\n";
-        assignPR(program, 3, i);
-        if(program[i].OP3.vr != -1) VRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
-
+                        
+        assignPR(program,3,i);
+        if(program[i].OP3.vr != -1){
+           VRTable[program[i].OP3.vr].nextUse = program[i].OP3.nu;
+        }
         if (program[i].op == loadI){
             VRTable[program[i].OP3.vr].value = program[i].OP1.sr;
         }

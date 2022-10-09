@@ -42,9 +42,10 @@ int main(int argc, char** argv)
                     cout <<"PARSE ERROR"<<endl;
                     return 0;
                 }
+                //a.prettyPrintTable(p.v);
                 vector <struct instruction> program = a.computeLastUse(p.v);
-                a.allocate(program, s.constToInt(optarg) );
                 //a.prettyPrintTable(program);
+                a.allocate(program, s.constToInt(optarg) - 1 );
                 a.printIlloc(program);
                 return 0;
             }
