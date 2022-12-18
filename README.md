@@ -1,16 +1,3 @@
-# Project 2: Allocator
-
-In this project, you will implement a bottom-up local register allocator based on the algorithm in
-Ch. 13.3.2 of Engineering a Compiler. Your program will takes as input a sequence of branch-free
-operations, as specified in [Appendix: B](#appendix-b-iloc-subset), and an integer $k \geq 3$. Your program will
-produce as output an *equivalent* sequence of ILOC operations that uses at most $k$ registers.
-
-Due Dates:
-
-* Naive Allocator: 9/29/18
-* Final Allocator: 10/6/18
-* Project Report: 10/11/18
-
 ## Specification
 
 For the purposes of this project, two blocks are equivalent if they output same values in the same
@@ -154,77 +141,6 @@ On the `janus` machines, a number of tools and reference files are available in 
 * **blocks**: the same sample blocks provided in this repository.
 * **TestAlloc** A script to test your implementation. The normal use is  +./TestAlloc \<allocator\> \<directory\> \<k\>+
 * **test\_opts** An even more basic script to test optimizations. Just run it on your allocator.
-
-## Lab Report
-
-You **must** write a lab report for this project. The report should be 3-5 pages, typeset, and contain the following sections.
-
-### Problem Statement  
-Provide a brief description of the problem. Your report should be
-coherent to someone from outside the class.
-
-### Methods  
-Provide a *high-level* description of the register allocation algorithm
-you implemented. You may use pseudo-code. Be sure to emphasize any
-difference between your algorithm and the one described in the book. In
-specific, touch on:
-
-* The key design decisions you made when implementing your allocator. Do
-  not include a detailed description of every field, class, and method.
-  Only describe those that are important to your high-level algorithm.
-
-* How your allocator chooses which register to spill, when necessary.
-
-* Any approximations or heuristics your algorithm uses, and why they are reasonable.
-
-* The asymptotic complexity of your allocation algorithm, using big O notation.
-
-### Results  
-Discuss your experimental results and the conclusions you drew about the
-efficiency of your allocator. Use tables or graphs when appropriate.
-
-* Compare the results of your allocator and the reference allocator.
-  Measure the number of cycles reported by the ILOC simulator for both
-  allocators on each report block, and each value $k$ from
-  $3, 4, 8, 12,$ and $16$. Be sure to list the number of cycles used
-  by the original code.
-
-* Compare the running time of your allocator and the reference
-  allocator. Measure the running time of both allocators on each of the
-  timing blocks, for $k=15$. Each timing block has a successively larger
-  number of lines. If your allocator is less efficient, consider which
-  design decisions might account for the difference. Consider the
-  consistency of the timing results and your complexity analysis in the
-  Methods section.
-
-* Be sure to indicate if your allocator failed on any block and value of
-  $k$, for instance by failing to run, producing a block that does not
-  run on the simulator, or that generates the wrong output when run on
-  the simulator.
-
-### Experience  
-Describe what you learned while implementing your allocator. This is the *only* sections where you
-should discuss the process behind your decisions, instead of the decisions themselves.
-
-* How did your plans change as your implementation progressed?
-* Did your choices for Project 1 impact this project?
-* If you had to start over, what would you do differently?
-* What advice would you give to other students attempting this project?
-
-## Grading Rubric
-
-The project is graded on the following metrics:
-
-- 5 points - Meeting the checkpoint.
-- 35 points - Correctness of the code produced by your allocator.
-- 30 points - Implementing optimizations and improving heuristics.
-  - 5 points -  Rematerialization optimization.
-  - 10 points -  Already-spilled value optimization.
-  - 10 points - Clean value optimization.
-  - 5 points - Improving on the default spill heuristic.
-- 25 points - Final report
-- 5 points - Interface follows the specification.
-- 5 points (bonus) - The relative ranking of your improved heuristic to the reference implementation and other students.
 
 ## Appendix A: Abstracted Allocation Algorithm
 
